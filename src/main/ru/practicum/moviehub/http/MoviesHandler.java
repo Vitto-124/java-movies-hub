@@ -25,45 +25,41 @@ public class MoviesHandler extends BaseHttpHandler {
 
     @Override
     public void handle(HttpExchange ex) throws IOException {
-        try {
-            String method = ex.getRequestMethod().toUpperCase();
-            String path = ex.getRequestURI().getPath();
-            String query = ex.getRequestURI().getQuery();
+        String method = ex.getRequestMethod().toUpperCase();
+        String path = ex.getRequestURI().getPath();
+        String query = ex.getRequestURI().getQuery();
 
-            String[] pathParts = path.split("/");
+        String[] pathParts = path.split("/");
 
-            switch (method) {
-                case "GET" -> {
-                    if (pathParts.length == 2 && pathParts[1].equals("movies")) {
-                        if (query != null && !query.isEmpty()) {
-                            handleGetWithQuery(ex, query);
-                        } else {
-                            sendJson(ex, 200, gson.toJson(store.getAll()));
-                        }
-                    } else if (pathParts.length == 3 && pathParts[1].equals("movies")) {
-                        handleGetById(ex, pathParts[2]);
+        switch (method) {
+            case "GET" -> {
+                if (pathParts.length == 2 && pathParts[1].equals("movies")) {
+                    if (query != null && !query.isEmpty()) {
+                        handleGetWithQuery(ex, query);
                     } else {
-                        sendJson(ex, 404, gson.toJson(new ErrorResponse("Эндпоинт не найден")));
+                        sendJson(ex, 200, gson.toJson(store.getAll()));
                     }
+                } else if (pathParts.length == 3 && pathParts[1].equals("movies")) {
+                    handleGetById(ex, pathParts[2]);
+                } else {
+                    sendJson(ex, 404, gson.toJson(new ErrorResponse("Эндпоинт не найден")));
                 }
-                case "POST" -> {
-                    if (pathParts.length == 2 && pathParts[1].equals("movies")) {
-                        handlePost(ex);
-                    } else {
-                        sendJson(ex, 404, gson.toJson(new ErrorResponse("Эндпоинт не найден")));
-                    }
-                }
-                case "DELETE" -> {
-                    if (pathParts.length == 3 && pathParts[1].equals("movies")) {
-                        handleDelete(ex, pathParts[2]);
-                    } else {
-                        sendJson(ex, 404, gson.toJson(new ErrorResponse("Эндпоинт не найден")));
-                    }
-                }
-                default -> sendJson(ex, 405, gson.toJson(new ErrorResponse("Метод не поддерживается")));
             }
-        } catch (Exception e) {
-            sendJson(ex, 500, gson.toJson(new ErrorResponse("Внутренняя ошибка сервера")));
+            case "POST" -> {
+                if (pathParts.length == 2 && pathParts[1].equals("movies")) {
+                    handlePost(ex);
+                } else {
+                    sendJson(ex, 404, gson.toJson(new ErrorResponse("Эндпоинт не найден")));
+                }
+            }
+            case "DELETE" -> {
+                if (pathParts.length == 3 && pathParts[1].equals("movies")) {
+                    handleDelete(ex, pathParts[2]);
+                } else {
+                    sendJson(ex, 404, gson.toJson(new ErrorResponse("Эндпоинт не найден")));
+                }
+            }
+            default -> sendJson(ex, 405, gson.toJson(new ErrorResponse("Метод не поддерживается")));
         }
     }
 
@@ -121,7 +117,7 @@ public class MoviesHandler extends BaseHttpHandler {
         try {
             movie = gson.fromJson(body, Movie.class);
             if (movie == null) {
-                sendJson(ex, 422, gson.toJson(new ErrorResponse("Ошибка валидации", List.of("Тело запроса не может быть пустым"))));
+                sendJson(ex, 400, gson.toJson(new ErrorResponse("Ошибка валидации", List.of("Тело запроса не может быть пустым"))));
                 return;
             }
         } catch (JsonSyntaxException e) {
